@@ -2,12 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"testing"
-
-	"github.com/ethereum/go-ethereum/common/math"
-
-	"github.com/njmdk/common/timer"
+	"time"
 )
 
 func TestBase34(t *testing.T) {
@@ -16,7 +14,7 @@ func TestBase34(t *testing.T) {
 	fmt.Println(c)
 	fmt.Println(strconv.Itoa(id))
 
-	now := timer.Now()
+	now := time.Now()
 	now = now.AddDate(0, 1, 0)
-	fmt.Println(timer.ToString(now))
+	fmt.Println(now.Format("2006-01-02 15:04:05"))
 }
