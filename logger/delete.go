@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"github.com/toufchuan/hfcz_server/utils/timer"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -9,7 +10,6 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
