@@ -3,7 +3,7 @@ package ws
 import (
 	"sync/atomic"
 
-	"github.com/njmdk/common/utils"
+	"github.com/njmdk/common/crypt"
 )
 
 type WebSocket struct {
@@ -12,5 +12,5 @@ type WebSocket struct {
 
 func (this_ *WebSocket) GenID() string {
 	newIndex := atomic.AddInt64(&this_.index, 1)
-	return utils.Base34(uint64(newIndex))
+	return crypt.Base34(uint64(newIndex))
 }

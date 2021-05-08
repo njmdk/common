@@ -9,6 +9,7 @@ import (
 
 	"github.com/edwingeng/wuid/mysql/wuid"
 
+	"github.com/njmdk/common/crypt"
 	"github.com/njmdk/common/db"
 	"github.com/njmdk/common/utils"
 )
@@ -30,12 +31,12 @@ func (u *UUID) NextString() string {
 
 func (u *UUID) NextBase62() string {
 	n := u.WUID.Next()
-	return utils.Base62Encode(n)
+	return crypt.Base62Encode(n)
 }
 
 func (u *UUID) NextBase34() string {
 	n := u.WUID.Next()
-	return utils.Base34(uint64(n))
+	return crypt.Base34(uint64(n))
 }
 
 func (u *UUID) Next16String() string {

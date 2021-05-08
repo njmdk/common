@@ -1,4 +1,4 @@
-package utils
+package crypt
 
 import (
 	"crypto/md5"
@@ -21,5 +21,7 @@ func MD5StringUpper(str string) string {
 }
 
 func MD5Bytes(bs []byte) string {
-	return fmt.Sprintf("%x", md5.Sum(bs))
+	md5 := md5.Sum(bs)
+	md5Text := fmt.Sprintf("%x", md5)
+	return md5Text
 }

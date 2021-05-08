@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-redis/redis"
 
+	"github.com/njmdk/common/crypt"
 	"github.com/njmdk/common/timer"
-	"github.com/njmdk/common/utils"
 )
 
 const redisUUIDKey = "redis_uuid_key"
@@ -77,7 +77,7 @@ func (this_ *RedisUUID) Next11() string {
 	const baseStr = "00000000000"
 	low := atomic.AddUint32(&this_.index, 1)
 	uuid := this_.smallUid + int64(low)
-	uuidStr := utils.Base62Encode(uuid)
+	uuidStr := crypt.Base62Encode(uuid)
 	uuidStrLen := len(uuidStr)
 	if uuidStrLen > 11 {
 		return uuidStr[:11]
@@ -101,7 +101,7 @@ func (this_ *RedisUUID) Next28() string {
 	const baseStr = "0000000000000000000000000000"
 	low := atomic.AddUint32(&this_.index, 1)
 	uuid := this_.smallUid + int64(low)
-	uuidStr := utils.Base62Encode(uuid)
+	uuidStr := crypt.Base62Encode(uuid)
 	uuidStrLen := len(uuidStr)
 	if uuidStrLen > 28 {
 		return uuidStr[:28]

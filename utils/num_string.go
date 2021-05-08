@@ -1,6 +1,10 @@
 package utils
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/njmdk/common/crypt"
+)
 
 func EncodeNumString(src string) string {
 	high := src[:12]
@@ -16,5 +20,5 @@ func EncodeNumString(src string) string {
 	if err != nil {
 		return src
 	}
-	return Base62Encode(int64(ih)) + "." + Base62Encode(int64(il))
+	return crypt.Base62Encode(int64(ih)) + "." + crypt.Base62Encode(int64(il))
 }

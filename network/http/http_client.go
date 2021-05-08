@@ -17,6 +17,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/njmdk/common/crypt"
 	"github.com/njmdk/common/logger"
 	"github.com/njmdk/common/network/ulimit"
 	"github.com/njmdk/common/timer"
@@ -319,7 +320,7 @@ func (this_ *Client) POSTForm(uri string, queryParams *utils.URLValues, header *
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 		}
 		urlInfo.RawQuery = queryParams.Encode()
@@ -398,7 +399,7 @@ func (this_ *Client) DoRaw(method, uri string, queryParams *utils.URLValues, hea
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 		}
 		urlInfo.RawQuery = queryParams.Encode()
@@ -488,7 +489,7 @@ func (this_ *Client) DoWithStatus(method, uri string, queryParams *utils.URLValu
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 		}
 		urlInfo.RawQuery = queryParams.Encode()
@@ -584,7 +585,7 @@ func (this_ *Client) Do(method, uri string, queryParams *utils.URLValues, header
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 		}
 		urlInfo.RawQuery = queryParams.Encode()
@@ -674,7 +675,7 @@ func (this_ *Client) DoReturnResponse(method, uri string, queryParams *utils.URL
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 		}
 		urlInfo.RawQuery = queryParams.Encode()
@@ -760,7 +761,7 @@ func (this_ *Client) DoWithResult(method, uri string, queryParams *utils.URLValu
 	urlInfo.Path = uri
 	if queryParams.Len() > 0 {
 		if this_.isMd5Query {
-			sign := utils.MD5String(queryParams.Encode())
+			sign := crypt.MD5String(queryParams.Encode())
 			queryParams.Add("sign", sign)
 			queryParams.Del("app_secret")
 		}
