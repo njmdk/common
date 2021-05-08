@@ -7,64 +7,12 @@ import (
 	"github.com/mojocn/base64Captcha"
 )
 
-var config = base64Captcha.ConfigCharacter{
-	Height: 60,
-	Width:  150,
-	//const CaptchaModeNumber:数字,CaptchaModeAlphabet:字母,CaptchaModeArithmetic:算术,CaptchaModeNumberAlphabet:数字字母混合.
-	Mode:               base64Captcha.CaptchaModeNumberAlphabet,
-	ComplexOfNoiseText: base64Captcha.CaptchaComplexLower,
-	ComplexOfNoiseDot:  base64Captcha.CaptchaComplexLower,
-	IsUseSimpleFont:    false,
-	IsShowHollowLine:   false,
-	IsShowNoiseDot:     true,
-	IsShowNoiseText:    true,
-	IsShowSlimeLine:    false,
-	IsShowSineLine:     false,
-	CaptchaLen:         4,
-}
+func NewCaptcha() *base64Captcha.Captcha {
+	var store = base64Captcha.DefaultMemStore
+	//var driver = base64Captcha.DefaultDriverDigit
+	var driver = base64Captcha.NewDriverDigit(50,100,4,0.7,80)
 
-var configWH = base64Captcha.ConfigCharacter{
-	Height: 60,
-	Width:  150,
-	//const CaptchaModeNumber:数字,CaptchaModeAlphabet:字母,CaptchaModeArithmetic:算术,CaptchaModeNumberAlphabet:数字字母混合.
-	Mode:               base64Captcha.CaptchaModeNumberAlphabet,
-	ComplexOfNoiseText: base64Captcha.CaptchaComplexLower,
-	ComplexOfNoiseDot:  base64Captcha.CaptchaComplexLower,
-	IsUseSimpleFont:    false,
-	IsShowHollowLine:   false,
-	IsShowNoiseDot:     true,
-	IsShowNoiseText:    true,
-	IsShowSlimeLine:    false,
-	IsShowSineLine:     false,
-	CaptchaLen:         4,
-}
-
-func InitRedisCaptchaStore(client redis.Cmdable) {
-	base64Captcha.SetCustomStore(&RedisStore{redisClient: client})
-}
-
-func CreateCaptchaWithWH(width, height int64) (id, data string) {
-	var digitCap base64Captcha.CaptchaInterface
-
-	configWH.Height = int(height)
-	configWH.Width = int(width)
-	id, digitCap = base64Captcha.GenerateCaptcha("", configWH)
-	data = base64Captcha.CaptchaWriteToBase64Encoding(digitCap)
-
-	return
-}
-
-func CreateCaptcha() (id, data string) {
-	var digitCap base64Captcha.CaptchaInterface
-
-	id, digitCap = base64Captcha.GenerateCaptcha("", config)
-	data = base64Captcha.CaptchaWriteToBase64Encoding(digitCap)
-
-	return
-}
-
-func VerifyCaptcha(idKey, verifyValue string) bool {
-	return base64Captcha.VerifyCaptcha(idKey, verifyValue)
+	return base64Captcha.NewCaptcha(driver,store)
 }
 
 type RedisStore struct {

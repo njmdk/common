@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/njmdk/common/network/ulimit"
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
@@ -95,7 +94,7 @@ func (this_ *Logger)IsLogDebug()bool  {
 }
 
 func (this_ *Logger) checkTomorrow() {
-	t := timer.Now()
+	t := time.Now()
 
 	tomorrowStr := t.Format("2006_01_02")
 	if tomorrowStr != *(*string)(atomic.LoadPointer(&this_.tomorrow)) {
