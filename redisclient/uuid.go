@@ -1,6 +1,7 @@
 package redisclient
 
 import (
+	"github.com/njmdk/common/crypt"
 	"math"
 	"math/rand"
 	"strconv"
@@ -8,9 +9,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-
-	"github.com/njmdk/common/crypt"
-	"github.com/njmdk/common/timer"
 )
 
 const redisUUIDKey = "redis_uuid_key"
@@ -70,7 +68,7 @@ func (this_ *RedisUUID) Next() string {
 	low := atomic.AddUint32(&this_.index, 1)
 	uuid := this_.uid + uint64(low)
 
-	return timer.Now().Format("060102150405") + strconv.Itoa(int(uuid))
+	return time.Now().Format("060102150405") + strconv.Itoa(int(uuid))
 }
 
 func (this_ *RedisUUID) Next11() string {
@@ -89,7 +87,7 @@ func (this_ *RedisUUID) Next32() string {
 	const baseStr = "00000000000000000000000000000000"
 	low := atomic.AddUint32(&this_.index, 1)
 	uuid := this_.uid + uint64(low)
-	uuidStr := timer.Now().Format("060102150405") + strconv.Itoa(int(uuid))
+	uuidStr := time.Now().Format("060102150405") + strconv.Itoa(int(uuid))
 	uuidStrLen := len(uuidStr)
 	if uuidStrLen > 32 {
 		return uuidStr[:32]
@@ -115,7 +113,7 @@ func (this_ *RedisUUID) NextN(n int32) []string {
 	}
 	last := atomic.AddUint32(&this_.index, uint32(n))
 	out := make([]string, 0, int(n))
-	t := timer.Now().Format("060102150405")
+	t := time.Now().Format("060102150405")
 	for low := last - uint32(n) + 1; low <= last; low++ {
 		uuid := this_.uid + uint64(low)
 		out = append(out, t+strconv.Itoa(int(uuid)))
