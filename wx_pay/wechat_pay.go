@@ -1,4 +1,4 @@
-package pay
+package wx_pay
 
 import (
     "bytes"
