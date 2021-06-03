@@ -12,15 +12,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/njmdk/common/logger"
 	"hash"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type AliPay struct {
@@ -29,14 +26,12 @@ type AliPay struct {
 	AppPubKey []byte `json:"app_pub_key"`
 	CallBack string `json:"call_back"`
 	QuitUrl string `json:"quit_url"`
-	log *logger.Logger
 }
-func NewAliPay(appId string,appPriKey []byte,appPubKey []byte,log *logger.Logger,callback string,quitUrl string) (*AliPay,error) {
+func NewAliPay(appId string,appPriKey []byte,appPubKey []byte,callback string,quitUrl string) (*AliPay,error) {
 	aliPay := &AliPay{
 		AppId:  appId,
 		AppPriKey: appPriKey,
 		AppPubKey: appPubKey,
-		log:log,
 		CallBack:callback,
 		QuitUrl:quitUrl,
 	}
@@ -57,7 +52,6 @@ func (this_ *AliPay) GenBizContent(subject, body, outTradeNo, productCode string
 
 	jsonStr, err := json.Marshal(m)
 	if err != nil {
-		this_.log.Error("generate biz_content fail",zap.Error(err))
 		return "", err
 	}
 	return string(jsonStr), nil
@@ -85,7 +79,6 @@ func (this_ *AliPay) FillSign2Data(bizContent string, privateKey []byte, method 
 	//fmt.Println("data to be signed", signContentBytes)
 	signature, err := this_.Sign([]byte(signContentBytes), signType, privateKey)
 	if err != nil {
-		this_.log.Error("生成签名失败，请检查私钥是否配置成功。", zap.Error(err))
 		return nil, err
 	}
 	data.Set("sign", signature)
@@ -106,14 +99,12 @@ func (this_ *AliPay)Sign(data []byte, SignType string, pemPriKey []byte) (signat
 	d := h.Sum(nil)
 	pk, err := this_.ParsePrivateKey(pemPriKey)
 	if err != nil {
-		this_.log.Error("this_.ParsePrivateKey error",zap.Error(err))
 		return "",err
 	}
 	bs, err := rsa.SignPKCS1v15(rand.Reader, pk, hType, d)
 	//bs, err := rsa.SignPSS(rand.Reader, pk, hType, d,nil)
 
 	if err != nil {
-		this_.log.Error("rsa.SignPKCS1v15 error",zap.Error(err))
 		return "",err
 	}
 	signature = base64.StdEncoding.EncodeToString(bs)
@@ -131,30 +122,25 @@ func (this_ *AliPay)ParsePrivateKey(privateKey []byte) (pk *rsa.PrivateKey, err 
 	//	return nil,err
 	//}
 	if block == nil {
-		this_.log.Error(fmt.Sprintf("私钥格式错误1:%s", privateKey))
 		return nil,errors.New("私钥格式错误1")
 	}
 	switch block.Type {
 	case "RSA PRIVATE KEY":
 		rsaPrivateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-		if err == nil {
-			pk = rsaPrivateKey
-		} else {
+		if err != nil {
 			return nil,err
 		}
+		pk = rsaPrivateKey
+		return pk,nil
 	default:
 		err = errors.New(fmt.Sprintf("私钥格式错误:%s", privateKey))
+		return nil,err
 	}
-	return pk,nil
 }
 const (
-	// 私钥 PEMBEGIN 开头
 	PEMBEGIN = "-----BEGIN RSA PRIVATE KEY-----\n"
-	// 私钥 PEMEND 结尾
 	PEMEND = "\n-----END RSA PRIVATE KEY-----"
-	// 公钥 PEMBEGIN 开头
 	PUBPEMBEGIN = "-----BEGIN PUBLIC KEY-----\n"
-	// 公钥 PEMEND 结尾
 	PUBPEMEND = "\n-----END PUBLIC KEY-----"
 )
 // Rsa2PubSign RSA2公钥验证签名
@@ -237,12 +223,10 @@ func (this_ *AliPay) GetData(in url.Values) ([]byte,error) {
 func (this_ *AliPay) GenerateOrder(subject string,body string,orderId string,money float64,returnUrl string) (url.Values, error) {
 	bizContent,err := this_.GenBizContent(subject,body,orderId,ProductFastTradePay,money,"")
 	if err != nil {
-		this_.log.Error("this_.GenBizContent err",zap.Error(err))
 		return nil,err
 	}
 	signData,err := this_.FillSign2Data(bizContent,this_.AppPriKey,alipayTradePagePay,RSA2,returnUrl)
 	if err != nil {
-		this_.log.Error("this_.FillSign2Data err",zap.Error(err))
 		return nil,err
 	}
 	//resp,err := this_.PostData(signData)
@@ -265,12 +249,10 @@ type PreCreateResponse struct {
 func (this_ *AliPay) PreCreateOrder(subject string,body string,orderId string,money float64,returnUrl string) (*AliPayResponse, error) {
 	bizContent,err := this_.GenBizContent(subject,body,orderId,ProductFaceToFace,money,"")
 	if err != nil {
-		this_.log.Error("this_.GenBizContent err",zap.Error(err))
 		return nil,err
 	}
 	signData,err := this_.FillSign2Data(bizContent,this_.AppPriKey,alipayTradePreCreate,RSA2,returnUrl)
 	if err != nil {
-		this_.log.Error("this_.FillSign2Data err",zap.Error(err))
 		return nil,err
 	}
 	resp,err := this_.PostData(signData)
@@ -280,7 +262,6 @@ func (this_ *AliPay) PreCreateOrder(subject string,body string,orderId string,mo
 	result := &AliPayResponse{}
 	err = json.Unmarshal(resp,result)
 	if err != nil {
-		this_.log.Error("json.Unmarshal err",zap.Error(err))
 		return nil,err
 	}
 	if result.AliPayTradePreCreateResponse.Code == "10000" {
@@ -292,12 +273,10 @@ func (this_ *AliPay) PreCreateOrder(subject string,body string,orderId string,mo
 func (this_ *AliPay) GenerateWapOrder(subject string,body string,orderId string,money float64,returnUrl string) (url.Values, error) {
 	bizContent,err := this_.GenBizContent(subject,body,orderId,ProductQuickWapWay,money,this_.QuitUrl)
 	if err != nil {
-		this_.log.Error("this_.GenBizContent err",zap.Error(err))
 		return nil,err
 	}
 	signData,err := this_.FillSign2Data(bizContent,this_.AppPriKey,alipayTradeWapPay,RSA2,returnUrl)
 	if err != nil {
-		this_.log.Error("this_.FillSign2Data err",zap.Error(err))
 		return nil,err
 	}
 	//return signData,nil
@@ -338,40 +317,31 @@ func (this_ *AliPay) ProcessNotify(postForm url.Values) error {
 	}
 	signText,err := url.QueryUnescape(params.Encode())
 	if err != nil {
-		this_.log.Error("url.QueryUnescape error",zap.Error(err))
 		return err
 	}
 	if signType == RSA2 {
 		ret := this_.Rsa2PubSign(signText,sign,string(this_.AppPubKey),crypto.SHA256)
 		if !ret {
-			this_.log.Error("this_.aliPay.Rsa2PubSign 验签失败",zap.Any("params",mapParams))
-			return err
+			return errors.New("Rsa2PubSign错误")
 		}
 	} else {
-		this_.log.Error("不支持的加密",zap.Any("params",mapParams))
-		return err
+		return errors.New("不支持的加密")
 	}
 
 	tradeStatus,ok := mapParams["trade_status"]
 	if !ok {
-		this_.log.Error("this_.aliPay.Rsa2PubSign 验签失败",zap.Any("params",mapParams))
-		return err
+		return errors.New("不存在的字段 trade_status")
 	}
 	if tradeStatus == "TRADE_SUCCESS" {
 		appId,ok := mapParams["app_id"]
 		if !ok {
-			this_.log.Error("appId错误",zap.Any("params",mapParams))
-			return err
+			return errors.New("不存在的字段 app_id")
 		}
 		if appId != this_.AppId {
-			this_.log.Error("appId错误",zap.Any("params",mapParams))
-			return err
+			return errors.New("app_id不匹配")
 		}
-
-		this_.log.Info("回调交易成功",zap.String("status",tradeStatus),zap.Any("any",mapParams))
 		return nil
 	} else {
-		this_.log.Error("回调交易状态失败",zap.String("status",tradeStatus),zap.Any("any",mapParams))
-		return err
+		return errors.New(fmt.Sprintf("交易状态错误 %s",tradeStatus))
 	}
 }
