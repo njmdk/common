@@ -12,8 +12,7 @@ var  weChatCert = []byte(``)
 
 func TestNewWEChatAccountClient(t *testing.T) {
    r:=require.New(t)
-    account:= NewWEChatAccount("","",[]byte(""),false)
-    client:=NewWEChatClient(account)
+    client:=NewWXClient("","",[]byte(""),false)
     params := make(Params)
     params.SetString("body", "test").
         SetString("out_trade_no", "test436577857").

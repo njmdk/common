@@ -20,7 +20,7 @@ import (
     "strconv"
     "strings"
     "time"
-    
+
     "golang.org/x/crypto/pkcs12"
 )
 
@@ -56,7 +56,12 @@ const (
     SandboxAuthCodeToOpenidUrl = "https://api.mch.weixin.qq.com/sandboxnew/tools/authcodetoopenid"
 )
 
-const certData = ""
+const (
+	certData = ""
+	OrderTypeNative = "NATIVE"//扫码支付
+	OrderTypeMWEB = "MWEB"//H5支付
+	OrderTypeApp = "APP"//app支付
+)
 
 type Account struct {
     appID     string
@@ -66,8 +71,8 @@ type Account struct {
     isSandbox bool
 }
 
-// 创建微信支付账号
-func NewWEChatAccount(appID string, mchID string, apiKey []byte,isSandbox bool) *Account {
+// NewWEChatAccount 创建微信支付账号
+func CreateWXAccount(appID string, mchID string, apiKey []byte,isSandbox bool) *Account {
     bd,_:=base64.StdEncoding.DecodeString(certData)
     return &Account{
         appID:  appID,
@@ -78,9 +83,74 @@ func NewWEChatAccount(appID string, mchID string, apiKey []byte,isSandbox bool) 
     }
 }
 
+// CreateWXClient 创建微信支付客户端
+func CreateWXClient(account *Account) *WeChatClient {
+    return &WeChatClient{
+        account:              account,
+        signType:             MD5,
+        httpConnectTimeoutMs: 2000,
+        httpReadTimeoutMs:    1000,
+        client: &http.Client{
+            Transport: &http.Transport{
+                Proxy: nil,
+                DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+                    return net.DialTimeout(network, addr, time.Second*10)
+                },
+                MaxIdleConns:        10,
+                MaxIdleConnsPerHost: 1000,
+                IdleConnTimeout:     time.Minute * 5,
+                TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+            },
+            Timeout: time.Second*10,
+            CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                if len(via) >= 100 {
+                    return errors.New("stopped after 100 redirects")
+                }
+                return nil
+            },
+        },
+    }
+}
+// NewWEChatClient 创建微信支付客户端
+func NewWXClient(appID string, mchID string, apiKey []byte,isSandbox bool) *WeChatClient {
+    bd,_:=base64.StdEncoding.DecodeString(certData)
+    account := &Account{
+        appID:  appID,
+        mchID:  mchID,
+        apiKey: apiKey,
+        certData: bd,
+        isSandbox: isSandbox,
+    }
+    return &WeChatClient{
+        account:              account,
+        signType:             MD5,
+        httpConnectTimeoutMs: 2000,
+        httpReadTimeoutMs:    1000,
+        client: &http.Client{
+            Transport: &http.Transport{
+                Proxy: nil,
+                DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+                    return net.DialTimeout(network, addr, time.Second*10)
+                },
+                MaxIdleConns:        10,
+                MaxIdleConnsPerHost: 1000,
+                IdleConnTimeout:     time.Minute * 5,
+                TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+            },
+            Timeout: time.Second*10,
+            CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                if len(via) >= 100 {
+                    return errors.New("stopped after 100 redirects")
+                }
+                return nil
+            },
+        },
+    }
+}
+
 type Params map[string]string
 
-// map本来已经是引用类型了，所以不需要 *Params
+// SetString map本来已经是引用类型了，所以不需要 *Params
 func (p Params) SetString(k, s string) Params {
     p[k] = s
     return p
@@ -101,7 +171,7 @@ func (p Params) GetInt64(k string) int64 {
     return i
 }
 
-// 判断key是否存在
+// ContainsKey 判断key是否存在
 func (p Params) ContainsKey(key string) bool {
     _, ok := p[key]
     return ok
@@ -109,7 +179,7 @@ func (p Params) ContainsKey(key string) bool {
 
 type Notifies struct{}
 
-// 通知成功
+// OK 通知成功
 func (n *Notifies) OK() string {
     var params = make(Params)
     params.SetString("return_code", Success)
@@ -117,7 +187,7 @@ func (n *Notifies) OK() string {
     return MapToXml(params)
 }
 
-// 通知不成功
+// NotOK 通知不成功
 func (n *Notifies) NotOK(errMsg string) string {
     var params = make(Params)
     params.SetString("return_code", Fail)
@@ -169,7 +239,7 @@ func MapToXml(params Params) string {
     return buf.String()
 }
 
-// 用时间戳生成随机字符串
+// NonceStr 用时间戳生成随机字符串
 func NonceStr() string {
     return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }
@@ -212,35 +282,6 @@ type WeChatClient struct {
     client * http.Client
 }
 
-// 创建微信支付客户端
-func NewWEChatClient(account *Account) *WeChatClient {
-    return &WeChatClient{
-        account:              account,
-        signType:             MD5,
-        httpConnectTimeoutMs: 2000,
-        httpReadTimeoutMs:    1000,
-        client: &http.Client{
-            Transport: &http.Transport{
-                Proxy: nil,
-                DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
-                    return net.DialTimeout(network, addr, time.Second*10)
-                },
-                MaxIdleConns:        10,
-                MaxIdleConnsPerHost: 1000,
-                IdleConnTimeout:     time.Minute * 5,
-                TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
-            },
-            Timeout: time.Second*10,
-            CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                if len(via) >= 100 {
-                    return errors.New("stopped after 100 redirects")
-                }
-                return nil
-            },
-        },
-    }
-}
-
 func (c *WeChatClient) SetHttpConnectTimeoutMs(ms int) {
     c.httpConnectTimeoutMs = ms
 }
@@ -266,7 +307,8 @@ func (c *WeChatClient) fillRequestData(params Params) Params {
     params["sign"] = c.Sign(params)
     return params
 }
-// 向 params 中添加 appid、mch_id、nonce_str、sign_type、sign
+
+// FillJSAPIRequestData 向 params 中添加 appid、mch_id、nonce_str、sign_type、sign
 func (c *WeChatClient) FillJSAPIRequestData(params Params) Params {
     params["appId"] = c.account.appID
     params["timeStamp"] = fmt.Sprintf("%d",time.Now().Unix())
@@ -333,7 +375,7 @@ func (c *WeChatClient) generateSignedXml(params Params) string {
     return MapToXml(params)
 }
 
-// 验证签名
+// ValidSign 验证签名
 func (c *WeChatClient) ValidSign(params Params) bool {
     if !params.ContainsKey(Sign) {
         return false
@@ -341,7 +383,7 @@ func (c *WeChatClient) ValidSign(params Params) bool {
     return params.GetString(Sign) == c.Sign(params)
 }
 
-// 签名
+// Sign 签名
 func (c *WeChatClient) Sign(params Params) string {
     // 创建切片
     var keys = make([]string, 0, len(params))
@@ -389,7 +431,7 @@ func (c *WeChatClient) Sign(params Params) string {
     return strings.ToUpper(str)
 }
 
-// 签名
+// SignJSAPI 签名
 func (c *WeChatClient) SignJSAPI(params Params) string {
     // 创建切片
     var keys = make([]string, 0, len(params))
@@ -458,7 +500,7 @@ func (c *WeChatClient) processResponseXml(xmlStr string) (Params, error) {
     }
 }
 
-// 统一下单
+// UnifiedOrder 统一下单
 func (c *WeChatClient) UnifiedOrder(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -473,7 +515,7 @@ func (c *WeChatClient) UnifiedOrder(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 刷卡支付
+// MicroPay 刷卡支付
 func (c *WeChatClient) MicroPay(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -488,7 +530,7 @@ func (c *WeChatClient) MicroPay(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 退款
+// Refund 退款
 func (c *WeChatClient) Refund(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -503,7 +545,7 @@ func (c *WeChatClient) Refund(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 订单查询
+// OrderQuery 订单查询
 func (c *WeChatClient) OrderQuery(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -518,7 +560,7 @@ func (c *WeChatClient) OrderQuery(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 退款查询
+// RefundQuery 退款查询
 func (c *WeChatClient) RefundQuery(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -533,7 +575,7 @@ func (c *WeChatClient) RefundQuery(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 撤销订单
+// Reverse 撤销订单
 func (c *WeChatClient) Reverse(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -548,7 +590,7 @@ func (c *WeChatClient) Reverse(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 关闭订单
+// CloseOrder 关闭订单
 func (c *WeChatClient) CloseOrder(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -563,7 +605,7 @@ func (c *WeChatClient) CloseOrder(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 对账单下载
+// DownloadBill 对账单下载
 func (c *WeChatClient) DownloadBill(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -610,7 +652,7 @@ func (c *WeChatClient) DownloadFundFlow(params Params) (Params, error) {
     }
 }
 
-// 交易保障
+// Report 交易保障
 func (c *WeChatClient) Report(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -625,7 +667,7 @@ func (c *WeChatClient) Report(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 转换短链接
+// ShortUrl 转换短链接
 func (c *WeChatClient) ShortUrl(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -640,7 +682,7 @@ func (c *WeChatClient) ShortUrl(params Params) (Params, error) {
     return c.processResponseXml(xmlStr)
 }
 
-// 授权码查询OPENID接口
+// AuthCodeToOpenid 授权码查询OPENID接口
 func (c *WeChatClient) AuthCodeToOpenid(params Params) (Params, error) {
     var url string
     if c.account.isSandbox {
@@ -653,4 +695,50 @@ func (c *WeChatClient) AuthCodeToOpenid(params Params) (Params, error) {
         return nil, err
     }
     return c.processResponseXml(xmlStr)
+}
+
+func (this_ *WeChatClient) CreatePayOrder(tradeType string,orderID string, productID int64,money float64,desc string,callback string, ip string) (Params, error) {
+    params := make(Params)
+    params.SetString("body", desc).
+        SetString("out_trade_no", orderID).
+        SetInt64("total_fee", int64(money*100)).
+        //SetInt64("total_fee", 1).
+        SetString("spbill_create_ip", ip).
+        SetString("notify_url", callback).
+        SetString("trade_type", tradeType).
+        SetString("product_id", fmt.Sprintf("%d",productID))
+    p, err := this_.UnifiedOrder(params)
+    if err != nil {
+        return nil, err
+    }
+    switch tradeType {
+    case OrderTypeNative:
+        return p, nil
+    case OrderTypeMWEB:
+        return p, nil
+    case OrderTypeApp:
+        if p.GetString("return_code") == Success {
+            prePayID := p.GetString("prepay_id")
+            //codeUrl := p.GetString("code_url")
+
+            appID := p.GetString("appid")
+            nonceStr := NonceStr()
+            pack := "Sign=WXPay"
+            partNerId := p.GetString("mch_id")
+            timestamp := fmt.Sprintf("%d",time.Now().Unix())
+            sp := make(Params)
+            sp.SetString("appid", appID).SetString("noncestr", nonceStr).SetString("package", pack).SetString("partnerid", partNerId).SetString("timestamp", timestamp).SetString("prepayid", prePayID)
+            sign := this_.Sign(sp)
+            p.SetString("nonce_str",nonceStr)
+            p.SetString("pack",pack)
+            p.SetString("timestamp",timestamp)
+            p.SetString("sign",sign)
+            return p, nil
+        } else {
+            return p, nil
+        }
+
+    default:
+        return p, nil
+    }
 }
