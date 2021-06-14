@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"github.com/toufchuan/hfcz_server/utils/timer"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -46,7 +45,7 @@ func (this_ *Logger) deleteBeforeNDay(days int) {
 					this_.Error("delete log error", zap.Error(err))
 					continue
 				}
-				if timer.Now().Sub(t) > time.Hour*24*time.Duration(days) {
+				if time.Now().Sub(t) > time.Hour*24*time.Duration(days) {
 					err = os.Remove(v)
 					if err != nil {
 						this_.Error("delete log error", zap.Error(err))
