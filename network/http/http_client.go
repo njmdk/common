@@ -20,7 +20,6 @@ import (
 	"github.com/njmdk/common/crypt"
 	"github.com/njmdk/common/logger"
 	"github.com/njmdk/common/network/ulimit"
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
@@ -221,19 +220,19 @@ func (this_ *Client) GetHost() string {
 }
 
 func (this_ *Client) POSTForm1(uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, values *utils.URLValues) (respData []byte, err error) {
-	start := timer.Now()
+	start := time.Now()
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", values.Encode()),
 				zap.ByteString("respData", respData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success",
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", values.Encode()),
 					zap.ByteString("respData", respData))
 			}
@@ -295,19 +294,19 @@ func (this_ *Client) POSTForm1(uri string, queryParams *utils.URLValues, header 
 }
 
 func (this_ *Client) POSTForm(uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, values *utils.URLValues) (respData []byte, err error) {
-	start := timer.Now()
+	start := time.Now()
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", values.Encode()),
 				zap.ByteString("respData", respData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success",
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", values.Encode()),
 					zap.ByteString("respData", respData))
 			}
@@ -373,20 +372,20 @@ func (this_ *Client) POSTForm(uri string, queryParams *utils.URLValues, header *
 }
 
 func (this_ *Client) DoRaw(method, uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, bodyData []byte) (respData []byte, err error) {
-	start := timer.Now()
+	start := time.Now()
 
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err), zap.String("method", method),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.ByteString("bodyData", bodyData),
 				zap.ByteString("respData", respData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success", zap.String("method", method),
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.ByteString("bodyData", bodyData),
 					zap.ByteString("respData", respData))
 			}
@@ -463,20 +462,20 @@ func (this_ *ErrorStatus) Error() string {
 }
 
 func (this_ *Client) DoWithStatus(method, uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, bodyData interface{}, expectedStatus int) (respData []byte, err error) {
-	start := timer.Now()
+	start := time.Now()
 
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err), zap.String("method", method),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 				zap.ByteString("respData", respData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success", zap.String("method", method),
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 					zap.ByteString("respData", respData))
 			}
@@ -559,20 +558,20 @@ func (this_ *Client) DoWithStatus(method, uri string, queryParams *utils.URLValu
 }
 
 func (this_ *Client) Do(method, uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, bodyData interface{}) (respData []byte, err error) {
-	start := timer.Now()
+	start := time.Now()
 
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err), zap.String("method", method),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 				zap.ByteString("respData", respData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success", zap.String("method", method),
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 					zap.ByteString("respData", respData))
 			}
@@ -651,19 +650,19 @@ func (this_ *Client) Do(method, uri string, queryParams *utils.URLValues, header
 }
 
 func (this_ *Client) DoReturnResponse(method, uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, cookies []*http.Cookie, bodyData interface{}) (resp *http.Response, err error) {
-	start := timer.Now()
+	start := time.Now()
 
 	var urlInfo *url.URL
 
 	defer func() {
 		if err != nil {
 			this_.logger.Error("http client do: error", zap.Error(err), zap.String("method", method),
-				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+				zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 				zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData))
 		} else {
 			if this_.ShowLog {
 				this_.logger.Info("http client do: success", zap.String("method", method),
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData))
 			}
 		}
@@ -730,7 +729,7 @@ func (this_ *Client) DoReturnResponse(method, uri string, queryParams *utils.URL
 }
 
 func (this_ *Client) DoWithResult(method, uri string, queryParams *utils.URLValues, header *utils.HTTPHeader, bodyData interface{}, out interface{}) (err error) {
-	start := timer.Now()
+	start := time.Now()
 
 	var (
 		urlInfo  *url.URL
@@ -741,13 +740,13 @@ func (this_ *Client) DoWithResult(method, uri string, queryParams *utils.URLValu
 		if this_.logger != nil {
 			if err != nil {
 				this_.logger.Error("http client do: error", zap.Error(err), zap.String("method", method),
-					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+					zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 					zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 					zap.ByteString("respData", respData))
 			} else {
 				if this_.ShowLog {
 					this_.logger.Info("http client do: success", zap.String("method", method),
-						zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", timer.Now().Sub(start)),
+						zap.String("HOST", this_.url.Host), zap.String("urlInfo", urlInfo.String()), zap.Duration("costs", time.Now().Sub(start)),
 						zap.Any("queryParams", queryParams), zap.Any("header", header), zap.Any("bodyData", bodyData),
 						zap.ByteString("respData", respData), zap.Any("out", out))
 				}

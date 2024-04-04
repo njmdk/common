@@ -2,6 +2,7 @@ package tcp
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
@@ -9,7 +10,6 @@ import (
 	"github.com/njmdk/common/eventqueue"
 	"github.com/njmdk/common/logger"
 	"github.com/njmdk/common/network/basepb"
-	"github.com/njmdk/common/timer"
 	workpool "github.com/njmdk/common/work_pool"
 )
 
@@ -196,7 +196,7 @@ func DispatchMsg(f func(event interface{}), workPool *workpool.WorkPool) func(ev
 						sess.logger.Debug("session recv msg", zap.String("sessionName", sess.SessionName), zap.String("sessionID", sess.SessionID), zap.String("msgID", e.MsgID), zap.Any("msg", e.Msg))
 					}
 					if e.MsgID == messagePingName || e.MsgID == messagePongName {
-						sess.lastPongTime = timer.Now().Unix()
+						sess.lastPongTime = time.Now().Unix()
 						if e.MsgID == messagePingName {
 							sess.SendNoError(&basepb.Base_Pong{})
 						}

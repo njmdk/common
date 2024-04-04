@@ -11,8 +11,8 @@ type Config struct {
 	User         string         `toml:"user" json:"user"`
 	Password     string         `toml:"password" json:"password"`
 	Database     string         `toml:"database" json:"database"`
-	MaxOpenConnS int            `toml:"max_open_conn_num" json:"max_open_conn_s"`
-	MaxIdleConnS int            `toml:"max_idle_conn_num" json:"max_idle_conn_s"`
+	MaxOpenConnS int            `toml:"max_open_conn_s" json:"max_open_conn_s"`
+	MaxIdleConnS int            `toml:"max_idle_conn_s" json:"max_idle_conn_s"`
 	MaxLifeTime  utils.Duration `toml:"max_life_time" json:"max_life_time"`
 }
 

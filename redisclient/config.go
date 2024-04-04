@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Addr       string         `json:"addr" toml:"addr"`
 	Password   string         `json:"password" toml:"password"`
-	DataBase   int64          `json:"data_base" toml:"data_base"`
+	DataBase   int64          `json:"database" toml:"database"`
 	Timeout    utils.Duration `json:"timeout" toml:"timeout"`
 	MaxRetries int64          `json:"max_retries" toml:"max_retries"`
 }

@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/njmdk/common/logger"
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
@@ -80,7 +79,7 @@ func (this_ *EventQueue) PostWait(f func()) error {
 			}
 		}()
 		t, _ := ctx.Deadline()
-		if t.Sub(timer.Now()) < time.Millisecond*100 {
+		if t.Sub(time.Now()) < time.Millisecond*100 {
 			return
 		}
 		defer cancel()
@@ -111,7 +110,7 @@ func (this_ *EventQueue) Tick(d time.Duration, f func(time.Time) bool) {
 						this_.Tick(d, f)
 					}
 				},
-				T: timer.Now(),
+				T: time.Now(),
 			}
 		})
 	}
@@ -138,7 +137,7 @@ func (this_ *EventQueue) AfterFunc(d time.Duration, f func(time.Time)) {
 		time.AfterFunc(d, func() {
 			this_.timerPostQueue <- &timerFuncInfo{
 				F: f,
-				T: timer.Now(),
+				T: time.Now(),
 			}
 		})
 	}
@@ -147,7 +146,7 @@ func (this_ *EventQueue) AfterFunc(d time.Duration, f func(time.Time)) {
 // 达到某个时间点调用
 func (this_ *EventQueue) UntilFunc(t time.Time, f func(time.Time)) {
 	if !this_.Stopped() {
-		timestamp := t.Sub(timer.Now())
+		timestamp := t.Sub(time.Now())
 		if timestamp <= 0 {
 			timestamp = time.Nanosecond
 		}
@@ -155,7 +154,7 @@ func (this_ *EventQueue) UntilFunc(t time.Time, f func(time.Time)) {
 		time.AfterFunc(timestamp, func() {
 			this_.timerPostQueue <- &timerFuncInfo{
 				F: f,
-				T: timer.Now(),
+				T: time.Now(),
 			}
 		})
 	}
@@ -164,12 +163,12 @@ func (this_ *EventQueue) UntilFunc(t time.Time, f func(time.Time)) {
 // 达到某个时间点调用
 func (this_ *EventQueue) UntilFuncMillSeconds(untilMillSecondTime int64, f func(time.Time)) {
 	if !this_.Stopped() {
-		timestamp := untilMillSecondTime - timer.NowUnixMillisecond()
+		timestamp := untilMillSecondTime - time.Now().Unix()
 		if timestamp <= 0 {
 			time.AfterFunc(time.Nanosecond, func() {
 				this_.timerPostQueue <- &timerFuncInfo{
 					F: f,
-					T: timer.Now(),
+					T: time.Now(),
 				}
 			})
 
@@ -179,7 +178,7 @@ func (this_ *EventQueue) UntilFuncMillSeconds(untilMillSecondTime int64, f func(
 		time.AfterFunc(time.Duration(timestamp)*time.Millisecond, func() {
 			this_.timerPostQueue <- &timerFuncInfo{
 				F: f,
-				T: timer.Now(),
+				T: time.Now(),
 			}
 		})
 	}

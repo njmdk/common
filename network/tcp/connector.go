@@ -13,7 +13,6 @@ import (
 	"github.com/njmdk/common/eventqueue"
 	"github.com/njmdk/common/logger"
 	"github.com/njmdk/common/network/basepb"
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
@@ -276,7 +275,7 @@ func (this_ *Connector) startHeartbeat() {
 	}
 
 	if this_.sess != nil {
-		this_.sess.lastPongTime = timer.NowUnixSecond()
+		this_.sess.lastPongTime = time.Now().Unix()
 	}
 
 	this_.isStartHeart = true

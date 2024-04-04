@@ -16,7 +16,6 @@ import (
 	"github.com/njmdk/common/eventqueue"
 	"github.com/njmdk/common/logger"
 	"github.com/njmdk/common/network/basepb"
-	"github.com/njmdk/common/timer"
 	"github.com/njmdk/common/utils"
 )
 
@@ -73,7 +72,7 @@ func NewSession(conn net.Conn, queue *eventqueue.EventQueue, batchSend bool, cod
 		rpcTimeout:   rpcTimeout,
 		rpcFunc:      &sync.Map{},
 		logger:       logger,
-		lastPongTime: timer.NowUnixSecond(),
+		lastPongTime: time.Now().Unix(),
 		isDebugLog:   isDebugLog,
 	}
 
@@ -298,7 +297,7 @@ func (this_ *Session) sendRawByte(pp packetProtocol, rpcIndex uint32, msgID stri
 }
 
 func (this_ *Session) writeTimeout(duration time.Duration, data []byte) (int, error) {
-	_ = this_.conn.SetWriteDeadline(timer.Now().Add(duration))
+	_ = this_.conn.SetWriteDeadline(time.Now().Add(duration))
 	n, err := this_.conn.Write(data)
 	_ = this_.conn.SetWriteDeadline(time.Time{})
 
